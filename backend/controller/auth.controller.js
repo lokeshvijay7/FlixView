@@ -1,4 +1,8 @@
-export async function login(req, res) {
+
+
+export async function signup(req, res) {
+  console.log(req.body); // Debugging line
+
   const { username, email, password } = req.body;
   try {
     if (!username || !email || !password){
@@ -7,7 +11,7 @@ export async function login(req, res) {
     if(password.length <  6){
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
-    const emainregex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailregex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if(!emailregex.test(email)){
       return res.status(400).json({ message: "Please enter a valid email" });
@@ -23,18 +27,26 @@ export async function login(req, res) {
     }  
 
     const newuser = new User({
+      email:email,
       username:username,
       email:email,
-      password:password
+      password:password,
+      image:""
     })
 
+    const saveduser = await newuser.save();
+    if(!saveduser){
+      return res.status(400).json({ message: "User not created" });
+    }
+
   } catch (error) {
-    
+    console.log("Error in signup :" + error.message);
+    return res.status(500).json({ message: "Internal server error" });
     
   }
 
 }
-export async function signup(req, res) {
+export async function login(req, res) {
   res.send('Signup Page');
 }
 export async function logout(req, res) {
