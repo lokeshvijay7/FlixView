@@ -1,3 +1,4 @@
+import User from '../models/user.model.js'; // Import the User model
 
 
 export async function signup(req, res) {

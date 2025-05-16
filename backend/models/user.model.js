@@ -31,7 +31,7 @@ const userschema = new mongoose.Schema({
   }
 );
 
-const user = mongoose.model("User", userschema);
+const User = mongoose.model("User", userschema);
 
 // Expore the user model to be used in amother file
-export default user;
+export default User;
