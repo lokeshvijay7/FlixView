@@ -1,5 +1,6 @@
 import User from '../models/user.model.js'; // Import the User model
 import bcrypt from 'bcryptjs'; 
+import  { generateTokenAndSetCookie }  from '../utils/generateToken.js'; // Import the JWT utility function
 
 export async function signup(req, res) {
   console.log(req.body); // Debugging line
@@ -37,12 +38,16 @@ export async function signup(req, res) {
       password:hashedPassword,
       image:""
     })
-
+   
+    generateTokenAndSetCookie(newuser._id, res);
     const saveduser = await newuser.save();
     res.status(201).json({ sucess: true , user : {
       ...saveduser._doc,
       password: ""
     }});
+    
+    
+
 
     if(!saveduser){
       return res.status(400).json({ message: "User not created" });
@@ -55,6 +60,10 @@ export async function signup(req, res) {
   }
 
 }
+
+
+
+
 export async function login(req, res) {
   res.send('Signup Page');
 }
