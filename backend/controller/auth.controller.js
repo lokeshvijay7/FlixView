@@ -67,6 +67,17 @@ export async function signup(req, res) {
 export async function login(req, res) {
   res.send('Signup Page');
 }
+
+
+
 export async function logout(req, res) {
-  res.send('Logout Page');
+  try {
+    res.clearCookie("JWT-FLIXVIEW");
+    return res.status(200).json({ message: "Logged out successfully" });
+  }
+  catch (error) {
+    console.log("Error in logout :" + error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+  
 }
