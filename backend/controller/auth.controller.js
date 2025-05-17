@@ -65,7 +65,37 @@ export async function signup(req, res) {
 
 
 export async function login(req, res) {
-  res.send('Signup Page');
+
+  try {
+    const { email,  password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Please fill all the fields" });
+    }
+
+    const user = await User.findOne({email:email});
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const paswordisMatch = await bcrypt.compare(password, user.password);
+    if (!paswordisMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+    generateTokenAndSetCookie(user._id, res);
+
+    res. status(200).json({ sucess: true , user : {
+      ...user._doc,
+      password: ""
+    }});
+    
+  } catch (error) {
+    console.log("Error in login :" + error.message);
+    return res.status(500).json({ message: "Internal server error" });
+    
+  }
+
+
 }
 
 
@@ -79,5 +109,5 @@ export async function logout(req, res) {
     console.log("Error in logout :" + error.message);
     return res.status(500).json({ message: "Internal server error" });
   }
-  
+
 }
