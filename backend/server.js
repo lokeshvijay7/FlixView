@@ -1,11 +1,13 @@
 import express from 'express';
 import authRoutes from './routes/auth.route.js';
+import movieRoutes from './routes/movie.route.js';
 import  connect_db  from './config/db.js';
 const app = express();
 
 app.use(express.json());
 
 app.use('/auth', authRoutes);
+app.use('/movie', movieRoutes);
 
 
 const port = process.env.PORT || 5000;
