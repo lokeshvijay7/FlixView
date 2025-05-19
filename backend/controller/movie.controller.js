@@ -6,7 +6,10 @@ export async function gettrendingmovie(req, res) {
       return res.status(400).json({ message: "No data found" });
     }
     const randommovie = data.results[Math.floor(Math.random() * data.results?.length)];
-
+    res.json({
+      success: true,
+      content: randommovie,
+    });
   }
   catch (error) {
     console.log("Error in gettrendingmovie :" + error.message);
