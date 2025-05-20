@@ -1,7 +1,7 @@
-import { getMovieDetails } from "../services/moviedbservices.js";
+import { getTMDBMovieDetails } from "../services/moviedbservices.js";
 export async function gettrendingmovie(req, res) {
   try {
-    const data = await getMovieDetails('https://api.themoviedb.org/3/trending/movie/day?language=en-US');
+    const data = await getTMDBMovieDetails('https://api.themoviedb.org/3/trending/movie/day?language=en-US');
     if (!data) {
       return res.status(400).json({ message: "No data found" });
     }
@@ -20,7 +20,7 @@ export async function gettrendingmovie(req, res) {
 export async function getmovietrailer (req, res) {
   try {
     const { id } = req.params;
-    const data = await getMovieDetails(`https://api.themoviedb.org/3/movie/${id}/videos?language=en-US`);
+    const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/movie/${id}/videos?language=en-US`);
     if (!data) {
       return res.status(400).json({ message: "No data found" });
     }
@@ -32,8 +32,21 @@ export async function getmovietrailer (req, res) {
     });
   }
   catch (error) {
+    if(error.message.includes(404)){
+      return res.status(404).json({ message: "Movie not found" }).send(null);
+    }
     console.log("Error in getmovietrailer :" + error.message);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
+
+ export async function getmoviedetails(req, res) {
+  try {
+    const { id } = req.body;
+    const data = await getTMDBMovieDetails();
+  }
+  catch {
+
+  }
+ }
 

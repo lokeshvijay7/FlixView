@@ -1,7 +1,7 @@
 import axois from 'axios';
 
 
-export const getMovieDetails = async (url) => {
+export const getTMDBMovieDetails = async (url) => {
   const options = {
     headers: {
       accept: 'application/json',

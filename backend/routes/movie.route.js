@@ -4,6 +4,7 @@ const Router = express.Router();
 
 Router.get("/trending", gettrendingmovie);  
 Router.get("/:id/trailer", getmovietrailer);
+Router.get("/:id/details", getmoviedetails);
 
 
 export default Router;
