@@ -1,26 +1,26 @@
 import { getTMDBMovieDetails } from "../services/moviedbservices.js";
-export async function gettrendingmovie(req, res) {
+export async function gettrendingtv(req, res) {
   try {
-    const data = await getTMDBMovieDetails('https://api.themoviedb.org/3/trending/movie/day?language=en-US');
+    const data = await getTMDBMovieDetails('https://api.themoviedb.org/3/trending/tv/day?language=en-US');
     if (!data) {
       return res.status(400).json({ message: "No data found" });
     }
-    const randommovie = data.results[Math.floor(Math.random() * data.results?.length)];
+    const randomtv = data.results[Math.floor(Math.random() * data.results?.length)];
     res.json({
       success: true,
-      content: randommovie,
+      content: randomtv,
     });
   }
   catch (error) {
-    console.log("Error in gettrendingmovie :" + error.message);
+    console.log("Error in gettrendingtv :" + error.message);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
 
-export async function getmovietrailer (req, res) {
+export async function gettvtrailer (req, res) {
   try {
     const { id } = req.params;
-    const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/movie/${id}/videos?language=en-US`);
+    const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/tv/${id}/videos?language=en-US`);
     if (!data) {
       return res.status(400).json({ message: "No data found" });
     }
@@ -33,31 +33,31 @@ export async function getmovietrailer (req, res) {
   }
   catch (error) {
     if(error.message.includes(404)){
-      return res.status(404).json({ message: "Movie not found" }).send(null);
+      return res.status(404).json({ message: "tv not found" }).send(null);
     }
-    console.log("Error in getmovietrailer :" + error.message);
+    console.log("Error in gettvtrailer :" + error.message);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
 
- export async function getmoviedetails(req, res) {
+ export async function gettvdetails(req, res) {
   try {
     const { id } = req.params;
-    const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/movie/${id}/videos?language=en-US`);
+    const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3tve/${id}/videos?language=en-US`);
     if (!data) {
       return res.status(400).json({ message: "No data found" });
     }
     return res.status(200).json({
       success: true,
       content: data,
-      message: "Movie details fetched successfully"
+      message: "tv details fetched successfully"
     });
   }
   catch(error) {
     if(error.message.includes(404)){
-      return res.status(404).json({ message: "Movie not found" }).send(null);
+      return res.status(404).json({ message: "tv not found" }).send(null);
     }
-    console.log("Error in getmoviedetails :" + error.message);
+    console.log("Error in gettvdetails :" + error.message);
     return res.status(500).json({ message: "Internal server error" });
 
   }
@@ -65,45 +65,45 @@ export async function getmovietrailer (req, res) {
 
 
 
- export async function getsimilarmovies(req, res) {
+ export async function getsimilarmtv(req, res) {
   try {
     const { id } = req.params;
-    const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/movie/${id}/similar?language=en-US&page=1`);
+    const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/tv/${id}/similar?language=en-US&page=1`);
     if (!data) {
       return res.status(400).json({ message: "No data found" });
     }
     return res.status(200).json({
       success: true,
       similar: data.results,
-      message: "Similar movies fetched successfully"
+      message: "Similar mtv fetched successfully"
     });
   } catch (error) {
     if(error.message.includes(404)){
-      return res.status(404).json({ message: "Movie not found" }).send(null);
+      return res.status(404).json({ message: "tv not found" }).send(null);
     }
-    console.log("Error in getsimilarmovies :" + error.message);
+    console.log("Error in getsimilartvs :" + error.message);
     return res.status(500).json({ message: "Internal server error" });
     
   }
  }
 
 
-  export async function getmoviecategory(req, res) {
+  export async function gettvcategory(req, res) {
     try {
       const { category } = req.params;
-      const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/movie/${category}?language=en-US&page=1`);
+      const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/tv/${category}?language=en-US&page=1`);
       if (!data) {
         return res.status(400).json({ message: "No data found" });
       }
       return res.status(200).json({
         success: true,
         content: data,
-        message: "Movie category fetched successfully"
+        message: "tv category fetched successfully"
       });
       
 
     } catch (error) {
-      console.log("Error in getmoviecategory :" + error.message);
+      console.log("Error in gettvcategory :" + error.message);
       return res.status(500).json({ message: "Internal server error" });
     }
   }
