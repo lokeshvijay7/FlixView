@@ -42,10 +42,24 @@ export async function getmovietrailer (req, res) {
 
  export async function getmoviedetails(req, res) {
   try {
-    const { id } = req.body;
-    const data = await getTMDBMovieDetails();
+    const { id } = req.params;
+    const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/movie/${id}/videos?language=en-US`);
+    res.json({
+      success: true,
+      content: data,
+    });
+    res.status(200).json({ message: "Movie details fetched successfully" });
+    if (!data) {
+      return res.status(400).json({ message: "No data found" });
+    }
+
   }
-  catch {
+  catch(error) {
+    if(error.message.includes(404)){
+      return res.status(404).json({ message: "Movie not found" }).send(null);
+    }
+    console.log("Error in getmoviedetails :" + error.message);
+    return res.status(500).json({ message: "Internal server error" });
 
   }
  }
