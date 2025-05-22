@@ -17,6 +17,7 @@ export async function gettrendingtv(req, res) {
   }
 }
 
+
 export async function gettvtrailer (req, res) {
   try {
     const { id } = req.params;
@@ -33,7 +34,7 @@ export async function gettvtrailer (req, res) {
   }
   catch (error) {
     if(error.message.includes(404)){
-      return res.status(404).json({ message: "tv not found" }).send(null);
+      return res.status(404).json({ message: "tv not found" });
     }
     console.log("Error in gettvtrailer :" + error.message);
     return res.status(500).json({ message: "Internal server error" });
@@ -43,7 +44,7 @@ export async function gettvtrailer (req, res) {
  export async function gettvdetails(req, res) {
   try {
     const { id } = req.params;
-    const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3tve/${id}/videos?language=en-US`);
+    const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/tv/${id}?language=en-US`);
     if (!data) {
       return res.status(400).json({ message: "No data found" });
     }
@@ -55,7 +56,7 @@ export async function gettvtrailer (req, res) {
   }
   catch(error) {
     if(error.message.includes(404)){
-      return res.status(404).json({ message: "tv not found" }).send(null);
+      return res.status(404).json({ message: "tv not found" });
     }
     console.log("Error in gettvdetails :" + error.message);
     return res.status(500).json({ message: "Internal server error" });
@@ -79,7 +80,7 @@ export async function gettvtrailer (req, res) {
     });
   } catch (error) {
     if(error.message.includes(404)){
-      return res.status(404).json({ message: "tv not found" }).send(null);
+      return res.status(404).json({ message: "tv not found" });
     }
     console.log("Error in getsimilartvs :" + error.message);
     return res.status(500).json({ message: "Internal server error" });
