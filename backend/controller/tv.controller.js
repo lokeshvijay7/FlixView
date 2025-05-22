@@ -65,7 +65,7 @@ export async function gettvtrailer (req, res) {
 
 
 
- export async function getsimilarmtv(req, res) {
+ export async function getsimilartv(req, res) {
   try {
     const { id } = req.params;
     const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/tv/${id}/similar?language=en-US&page=1`);
@@ -91,7 +91,7 @@ export async function gettvtrailer (req, res) {
   export async function gettvcategory(req, res) {
     try {
       const { category } = req.params;
-      const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/tv/${category}?language=en-US&page=1`);
+      const data = await getTMDBMovieDetails(`https://api.themoviedb.org/3/tv/${category}?`);
       if (!data) {
         return res.status(400).json({ message: "No data found" });
       }
