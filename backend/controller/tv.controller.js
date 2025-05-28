@@ -18,6 +18,7 @@ export async function gettrendingtv(req, res) {
 }
 
 
+
 export async function gettvtrailer (req, res) {
   try {
     const { id } = req.params;

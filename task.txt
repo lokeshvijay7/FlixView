@@ -1,0 +1,321 @@
+// === TrackMyTasks ===
+
+// Folder structure:
+// - backend/
+//   - controllers/
+//   - models/
+//   - routes/
+//   - middleware/
+//   - .env.example
+//   - server.js
+// - frontend/
+//   - public/
+//   - src/
+//     - pages/
+//     - components/
+//     - App.js
+//     - index.js
+
+// ---------------- BACKEND (Node.js + Express + MongoDB) ----------------
+
+// 1. backend/.env.example
+DB_URL=mongodb://localhost:27017/trackmytasks
+JWT_SECRET=your_jwt_secret
+
+// 2. backend/models/User.js
+const mongoose = require('mongoose');
+const UserSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true }
+});
+module.exports = mongoose.model('User', UserSchema);
+
+// 3. backend/models/Task.js
+const mongoose = require('mongoose');
+const TaskSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  completed: { type: Boolean, default: false },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+});
+module.exports = mongoose.model('Task', TaskSchema);
+
+// 4. backend/middleware/auth.js
+const jwt = require('jsonwebtoken');
+module.exports = function (req, res, next) {
+  const token = req.header('Authorization')?.split(' ')[1];
+  if (!token) return res.status(401).json({ msg: 'No token' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ msg: 'Invalid token' });
+  }
+};
+
+// 5. backend/controllers/authController.js
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+
+exports.register = async (req, res) => {
+  const { username, password } = req.body;
+  const hash = await bcrypt.hash(password, 10);
+  try {
+    const user = await User.create({ username, password: hash });
+    res.status(201).json({ msg: 'User created' });
+  } catch (err) {
+    res.status(400).json({ msg: 'User already exists' });
+  }
+};
+
+exports.login = async (req, res) => {
+  const { username, password } = req.body;
+  const user = await User.findOne({ username });
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return res.status(400).json({ msg: 'Invalid credentials' });
+  }
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+  res.json({ token });
+};
+
+// 6. backend/controllers/taskController.js
+const Task = require('../models/Task');
+
+exports.createTask = async (req, res) => {
+  const task = await Task.create({ ...req.body, userId: req.user.id });
+  res.status(201).json(task);
+};
+
+exports.getTasks = async (req, res) => {
+  const tasks = await Task.find({ userId: req.user.id });
+  res.json(tasks);
+};
+
+exports.updateTask = async (req, res) => {
+  const task = await Task.findOneAndUpdate(
+    { _id: req.params.id, userId: req.user.id },
+    req.body,
+    { new: true }
+  );
+  res.json(task);
+};
+
+exports.deleteTask = async (req, res) => {
+  await Task.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+  res.json({ msg: 'Task deleted' });
+};
+
+// 7. backend/routes/auth.js
+const express = require('express');
+const router = express.Router();
+const { register, login } = require('../controllers/authController');
+router.post('/register', register);
+router.post('/login', login);
+module.exports = router;
+
+// 8. backend/routes/tasks.js
+const express = require('express');
+const router = express.Router();
+const auth = require('../middleware/auth');
+const {
+  createTask,
+  getTasks,
+  updateTask,
+  deleteTask
+} = require('../controllers/taskController');
+router.post('/', auth, createTask);
+router.get('/', auth, getTasks);
+router.put('/:id', auth, updateTask);
+router.delete('/:id', auth, deleteTask);
+module.exports = router;
+
+// 9. backend/server.js
+const express = require('express');
+const mongoose = require('mongoose');
+require('dotenv').config();
+const authRoutes = require('./routes/auth');
+const taskRoutes = require('./routes/tasks');
+const app = express();
+const cors = require('cors');
+app.use(cors());
+app.use(express.json());
+
+mongoose.connect(process.env.DB_URL).then(() => console.log('MongoDB connected'));
+app.use('/api', authRoutes);
+app.use('/api/tasks', taskRoutes);
+
+app.listen(5000, () => console.log('Server running on port 5000'));
+
+// ---------------- FRONTEND (React + Tailwind) ----------------
+
+// 1. Run: npx create-react-app frontend
+//    cd frontend && npm install axios react-router-dom tailwindcss
+//    npx tailwindcss init -p
+//    Configure tailwind.config.js & index.css
+
+// 2. frontend/src/index.js
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+
+// 3. frontend/src/App.js
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Register from './pages/Register';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+// 4. frontend/src/pages/Register.js
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+export default function Register() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await axios.post('http://localhost:5000/api/register', { username, password });
+    navigate('/login');
+  };
+  return (
+    <div className="p-6 max-w-sm mx-auto">
+      <h2 className="text-2xl font-bold">Register</h2>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
+        <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} className="border p-2" required />
+        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="border p-2" required />
+        <button type="submit" className="bg-blue-500 text-white p-2">Register</button>
+      </form>
+    </div>
+  );
+}
+
+// 5. frontend/src/pages/Login.js
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+export default function Login() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const res = await axios.post('http://localhost:5000/api/login', { username, password });
+    localStorage.setItem('token', res.data.token);
+    navigate('/dashboard');
+  };
+  return (
+    <div className="p-6 max-w-sm mx-auto">
+      <h2 className="text-2xl font-bold">Login</h2>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
+        <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} className="border p-2" required />
+        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="border p-2" required />
+        <button type="submit" className="bg-green-500 text-white p-2">Login</button>
+      </form>
+    </div>
+  );
+}
+
+// 6. frontend/src/pages/Dashboard.js
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+export default function Dashboard() {
+  const [tasks, setTasks] = useState([]);
+  const [title, setTitle] = useState('');
+  const token = localStorage.getItem('token');
+
+  const fetchTasks = async () => {
+    const res = await axios.get('http://localhost:5000/api/tasks', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setTasks(res.data);
+  };
+
+  const addTask = async () => {
+    await axios.post('http://localhost:5000/api/tasks', { title }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setTitle('');
+    fetchTasks();
+  };
+
+  const deleteTask = async (id) => {
+    await axios.delete(`http://localhost:5000/api/tasks/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    fetchTasks();
+  };
+
+  const toggleComplete = async (task) => {
+    await axios.put(`http://localhost:5000/api/tasks/${task._id}`, {
+      completed: !task.completed
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    fetchTasks();
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  return (
+    <div className="p-6 max-w-md mx-auto">
+      <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
+      <div className="flex gap-2 mb-4">
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="New Task" className="border p-2 w-full" />
+        <button onClick={addTask} className="bg-blue-500 text-white px-4">Add</button>
+      </div>
+      <ul>
+        {tasks.map(task => (
+          <li key={task._id} className="flex justify-between items-center mb-2">
+            <span className={task.completed ? 'line-through' : ''}>{task.title}</span>
+            <div className="flex gap-2">
+              <button onClick={() => toggleComplete(task)} className="text-yellow-500">{task.completed ? 'Undo' : 'Done'}</button>
+              <button onClick={() => deleteTask(task._id)} className="text-red-500">Delete</button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// ---------------- OTHER FILES ----------------
+
+// .gitignore
+node_modules
+.env
+.DS_Store
+
+// README.md
+# TrackMyTasks
+A full-stack MERN app for user task management.
+
+## Backend
+- Run `npm install`
+- Create .env from .env.example
+- Run `node server.js`
+
+## Frontend
+- Run `npm install`
+- Run `npm start`
+
+## Features
+- Register/Login with JWT
+- Protected task routes
+- CRUD for tasks

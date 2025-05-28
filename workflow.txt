@@ -1,0 +1,6 @@
+BACKEND :
+
+npm init -y
+npm install express mongoose dotenv jsonwebtoken bycryptjs cookie-parser axios
+
+1.Server
